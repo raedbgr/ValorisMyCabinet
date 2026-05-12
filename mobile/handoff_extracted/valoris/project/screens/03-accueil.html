@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    // ───────────────────────────────────────────────
+    // Hero deadline card
+    // ───────────────────────────────────────────────
+    function HeroDeadline() {
+      return (
+        <div style={{
+          background: T.card, borderRadius: 16, padding: '18px 18px 16px',
+          border: `1px solid ${T.border}`,
+          display: 'flex', flexDirection: 'column', gap: 14,
+        }}>
+          {/* row 1: pill + countdown big */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Pill tone="amber">Urgent</Pill>
+              <div style={{
+                fontSize: 11, fontWeight: 600, color: T.text2,
+                letterSpacing: 1.2, textTransform: 'uppercase',
+                paddingTop: 2,
+              }}>Prochaine échéance</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{
+                fontSize: 32, fontWeight: 700, color: T.amber,
+                lineHeight: 1, letterSpacing: -1, fontVariantNumeric: 'tabular-nums',
+              }}>5</div>
+              <div style={{ fontSize: 11, color: T.text2, fontWeight: 500, marginTop: 2 }}>jours</div>
+            </div>
+          </div>
+
+          {/* title */}
+          <div>
+            <div style={{
+              fontSize: 19, fontWeight: 700, color: T.text,
+              letterSpacing: -0.4, lineHeight: 1.2,
+            }}>Déclaration TVA</div>
+            <div style={{
+              fontSize: 14, color: T.text2, marginTop: 2, fontWeight: 500,
+            }}>Période — Juillet 2026 · échéance 20 août</div>
+          </div>
+
+          {/* missing docs alert row */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 12px', borderRadius: 10,
+            background: T.redT, border: `1px solid #FBD5D5`,
+          }}>
+            <Icon name="alert" size={16} color={T.red} strokeWidth={2}/>
+            <div style={{ flex: 1, fontSize: 13, color: T.red, fontWeight: 500, letterSpacing: -0.1 }}>
+              2 documents manquants
+            </div>
+          </div>
+
+          {/* link */}
+          <a style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            paddingTop: 2, fontSize: 14, fontWeight: 600, color: T.brand,
+            textDecoration: 'none', cursor: 'pointer',
+          }}>
+            Voir le détail
+            <Icon name="chevR" size={16} color={T.brand} strokeWidth={2}/>
+          </a>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // AI assistant card — amber accent
+    // ───────────────────────────────────────────────
+    function AssistantCard() {
+      return (
+        <div style={{
+          background: T.card, borderRadius: 16, padding: 16,
+          border: `1px solid ${T.border}`,
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* amber left accent */}
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0,
+            width: 3, background: T.amber,
+          }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: 6, background: T.amberT,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="sparkles" size={14} color={T.amber} strokeWidth={2}/>
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 600, color: T.amber,
+              letterSpacing: 0.4, textTransform: 'uppercase',
+            }}>Votre assistant</div>
+            <div style={{ flex: 1 }}/>
+            <div style={{ fontSize: 11, color: T.text3, fontWeight: 500 }}>il y a 12 min</div>
+          </div>
+
+          <p style={{
+            margin: 0, fontSize: 14.5, lineHeight: 1.45, color: T.text,
+            letterSpacing: -0.1,
+          }}>
+            Il vous manque les factures du <strong style={{ fontWeight: 600 }}>15</strong> et <strong style={{ fontWeight: 600 }}>22 juillet</strong> pour finaliser votre TVA. Voulez‑vous les ajouter maintenant ?
+          </p>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+            <button style={{
+              flex: 1, height: 36, borderRadius: 8, border: 'none',
+              background: T.amber, color: '#fff', fontSize: 13.5, fontWeight: 600,
+              fontFamily: 'inherit', letterSpacing: -0.1, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              Répondre
+              <Icon name="chevR" size={14} color="#fff" strokeWidth={2.5}/>
+            </button>
+            <button style={{
+              height: 36, padding: '0 14px', borderRadius: 8,
+              background: T.card, border: `1px solid ${T.borderS}`,
+              color: T.text2, fontSize: 13.5, fontWeight: 500,
+              fontFamily: 'inherit', cursor: 'pointer',
+            }}>Plus tard</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Quick stat card
+    // ───────────────────────────────────────────────
+    function StatCard({ value, label, accent }) {
+      return (
+        <div style={{
+          background: T.card, borderRadius: 12, border: `1px solid ${T.border}`,
+          padding: '12px 12px 11px',
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          <div style={{
+            fontSize: 22, fontWeight: 700, color: accent || T.text,
+            letterSpacing: -0.5, lineHeight: 1, fontVariantNumeric: 'tabular-nums',
+          }}>{value}</div>
+          <div style={{
+            fontSize: 11, fontWeight: 500, color: T.text2,
+            letterSpacing: -0.05, lineHeight: 1.3,
+          }}>{label}</div>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Document list row
+    // ───────────────────────────────────────────────
+    function DocRow({ name, category, date, color, iconName = 'fileText', last }) {
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '12px 0',
+          borderBottom: last ? 'none' : `1px solid ${T.border}`,
+        }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <Icon name={iconName} size={20} color={color.fg} strokeWidth={1.7}/>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 14, fontWeight: 600, color: T.text,
+              letterSpacing: -0.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{name}</div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8, marginTop: 2,
+              fontSize: 12, color: T.text2, fontWeight: 500,
+            }}>
+              <span>{category}</span>
+              <span style={{ width: 2, height: 2, borderRadius: '50%', background: T.text3 }} />
+              <span>{date}</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Home screen
+    // ───────────────────────────────────────────────
+    function HomeScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {/* scroll area */}
+          <div className="hide-scroll" style={{
+            flex: 1, overflowY: 'auto',
+            paddingTop: 56, paddingBottom: 20,
+          }}>
+            {/* greeting row */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 20px 20px',
+            }}>
+              <div>
+                <div style={{
+                  fontSize: 12, color: T.text2, fontWeight: 500,
+                  letterSpacing: 0.2, textTransform: 'uppercase',
+                }}>Mercredi 12 août</div>
+                <div style={{
+                  fontSize: 22, fontWeight: 700, color: T.text,
+                  letterSpacing: -0.5, marginTop: 2,
+                }}>Bonjour, Marie</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button style={{
+                  width: 38, height: 38, borderRadius: 10, background: T.card,
+                  border: `1px solid ${T.border}`, padding: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative', cursor: 'pointer',
+                }}>
+                  <Icon name="bell" size={18} color={T.text} strokeWidth={1.8}/>
+                  <div style={{
+                    position: 'absolute', top: 7, right: 7,
+                    width: 7, height: 7, borderRadius: '50%', background: T.amber,
+                    border: `1.5px solid ${T.card}`,
+                  }} />
+                </button>
+                <Avatar name="Marie Martin" />
+              </div>
+            </div>
+
+            {/* hero */}
+            <div style={{ padding: '0 16px' }}>
+              <HeroDeadline />
+            </div>
+
+            {/* assistant card */}
+            <div style={{ padding: '12px 16px 0' }}>
+              <AssistantCard />
+            </div>
+
+            {/* quick stats */}
+            <div style={{
+              padding: '20px 16px 0',
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+            }}>
+              <StatCard value="12" label="Documents ce mois"/>
+              <StatCard value="4" label="Échéances à venir"/>
+              <StatCard value="78%" label="Taux de complétude" accent={T.green}/>
+            </div>
+
+            {/* recent docs */}
+            <div style={{ padding: '24px 16px 8px' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginBottom: 4,
+              }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 600, color: T.text2,
+                  letterSpacing: 0.6, textTransform: 'uppercase',
+                }}>Documents récents</div>
+                <a style={{
+                  fontSize: 13, fontWeight: 600, color: T.brand,
+                  textDecoration: 'none', cursor: 'pointer',
+                }}>Tout voir</a>
+              </div>
+              <div style={{
+                background: T.card, borderRadius: 12, padding: '0 14px',
+                border: `1px solid ${T.border}`,
+              }}>
+                <DocRow
+                  name="Facture_Boulangerie_08-2026.pdf"
+                  category="Facture"
+                  date="aujourd'hui"
+                  iconName="receipt"
+                  color={{ bg: '#EEF2F7', fg: T.brand }}
+                />
+                <DocRow
+                  name="Releve_LCL_juillet.pdf"
+                  category="Relevé bancaire"
+                  date="hier"
+                  iconName="fileText"
+                  color={{ bg: T.greenT, fg: T.green }}
+                />
+                <DocRow
+                  name="Kbis_2026.pdf"
+                  category="K-bis"
+                  date="3 août"
+                  iconName="file"
+                  color={{ bg: T.amberT, fg: T.amber }}
+                  last
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* bottom nav */}
+          <BottomNav active="home" />
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <HomeScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Profil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    function SectionLabel({ children }) {
+      return (
+        <div style={{
+          padding: '20px 20px 8px',
+          fontSize: 11, fontWeight: 600, color: T.text2,
+          letterSpacing: 1, textTransform: 'uppercase',
+        }}>{children}</div>
+      );
+    }
+
+    function Row({ icon, iconBg, iconFg, label, value, toggle, danger, chevron = true, last }) {
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '12px 14px',
+          borderBottom: last ? 'none' : `1px solid ${T.border}`,
+          cursor: 'pointer',
+        }}>
+          {icon && (
+            <div style={{
+              width: 30, height: 30, borderRadius: 8,
+              background: iconBg,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Icon name={icon} size={16} color={iconFg} strokeWidth={1.9}/>
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 14, fontWeight: 500,
+              color: danger ? T.red : T.text, letterSpacing: -0.1,
+            }}>{label}</div>
+          </div>
+          {value != null && (
+            <div style={{
+              fontSize: 13, color: T.text2, fontWeight: 500,
+              fontFamily: typeof value === 'string' && /^\d/.test(value) ? '"JetBrains Mono", ui-monospace, monospace' : 'inherit',
+            }}>{value}</div>
+          )}
+          {toggle != null && (
+            <div style={{
+              width: 38, height: 22, borderRadius: 11,
+              background: toggle ? T.green : '#D6D3CC',
+              padding: 2, boxSizing: 'border-box',
+              display: 'flex', alignItems: 'center',
+              justifyContent: toggle ? 'flex-end' : 'flex-start',
+              transition: 'all 0.18s',
+            }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.18)',
+              }}/>
+            </div>
+          )}
+          {chevron && value == null && toggle == null && (
+            <Icon name="chevR" size={16} color={T.text3} strokeWidth={2}/>
+          )}
+        </div>
+      );
+    }
+
+    function Card({ children }) {
+      return (
+        <div style={{
+          background: T.card, borderRadius: 14, border: `1px solid ${T.border}`,
+          margin: '0 16px', overflow: 'hidden',
+        }}>{children}</div>
+      );
+    }
+
+    function ProfileScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div className="hide-scroll" style={{ flex: 1, overflowY: 'auto', paddingTop: 56, paddingBottom: 100 }}>
+            {/* identity card */}
+            <div style={{
+              margin: '14px 16px 0', padding: 18, borderRadius: 16,
+              background: T.card, border: `1px solid ${T.border}`,
+              display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <Avatar name="Marie Martin" size={56}/>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: T.text, letterSpacing: -0.3 }}>Marie Martin</div>
+                <div style={{ fontSize: 13, color: T.text2, fontWeight: 500, marginTop: 2 }}>SARL Boulangerie Martin</div>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8,
+                  padding: '2px 8px', borderRadius: 999,
+                  background: T.brandT, color: T.brand,
+                  fontSize: 11, fontWeight: 600, letterSpacing: 0.2,
+                }}>
+                  <Icon name="check" size={11} color={T.brand} strokeWidth={2.6}/>
+                  Compte client vérifié
+                </div>
+              </div>
+            </div>
+
+            {/* MON ENTREPRISE */}
+            <SectionLabel>Mon entreprise</SectionLabel>
+            <Card>
+              <Row icon="building" iconBg={T.brandT} iconFg={T.brand}
+                   label="SIRET" value="824 117 462 00018" chevron={false}/>
+              <Row icon="fileText" iconBg={T.brandT} iconFg={T.brand}
+                   label="Régime fiscal" value="Réel simplifié"/>
+              <Row icon="receipt" iconBg={T.brandT} iconFg={T.brand}
+                   label="Période TVA" value="Mensuelle" last/>
+            </Card>
+
+            {/* SÉCURITÉ */}
+            <SectionLabel>Sécurité</SectionLabel>
+            <Card>
+              <Row icon="lock" iconBg={T.greenT} iconFg={T.green}
+                   label="Authentification à 2 facteurs" toggle/>
+              <Row icon="user" iconBg={T.greenT} iconFg={T.green}
+                   label="Changer mon mot de passe" last/>
+            </Card>
+
+            {/* NOTIFICATIONS */}
+            <SectionLabel>Notifications</SectionLabel>
+            <Card>
+              <Row label="Rappels d'échéance" toggle/>
+              <Row label="Documents manquants" toggle/>
+              <Row label="Messages de l'assistant" toggle/>
+              <Row label="Newsletter & nouveautés" toggle={false} last/>
+            </Card>
+
+            {/* MON CABINET */}
+            <SectionLabel>Mon cabinet</SectionLabel>
+            <div style={{
+              margin: '0 16px', padding: 14, borderRadius: 14,
+              background: T.card, border: `1px solid ${T.border}`,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 10, background: '#F0EBE0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700, color: '#73593B', letterSpacing: 0.4,
+              }}>CD</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: T.text, letterSpacing: -0.15 }}>Cabinet Dupuis & Associés</div>
+                <div style={{ fontSize: 12.5, color: T.text2, marginTop: 1 }}>Sophie Dupuis · votre interlocutrice</div>
+              </div>
+              <button style={{
+                width: 36, height: 36, borderRadius: 9,
+                background: T.brandT, border: 'none', padding: 0, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon name="chat" size={17} color={T.brand} strokeWidth={1.9}/>
+              </button>
+            </div>
+
+            {/* APP */}
+            <SectionLabel>Application</SectionLabel>
+            <Card>
+              <Row icon="info" iconBg={T.bgSunk} iconFg={T.text2}
+                   label="À propos" value="v2.4.1"/>
+              <Row icon="logout" iconBg={T.redT} iconFg={T.red}
+                   label="Déconnexion" danger chevron={false} last/>
+            </Card>
+
+            <div style={{ height: 24 }}/>
+          </div>
+          <BottomNav active="home"/>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <ProfileScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

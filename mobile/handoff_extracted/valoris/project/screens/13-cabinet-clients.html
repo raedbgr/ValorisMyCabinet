@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Cabinet · Clients</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #E5E4DF; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/browser-window.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    function Sidebar() {
+      const sections = [
+        { icon: 'grid', label: 'Tableau de bord' },
+        { icon: 'user', label: 'Clients', active: true, count: 24 },
+        { icon: 'calendar', label: 'Échéances', count: 11 },
+        { icon: 'folder', label: 'Documents' },
+        { icon: 'chat', label: 'Conversations', count: 3 },
+        { icon: 'settings', label: 'Paramètres' },
+      ];
+      return (
+        <div style={{
+          width: 232, flexShrink: 0, height: '100%',
+          borderRight: `1px solid ${T.border}`,
+          display: 'flex', flexDirection: 'column',
+          background: T.bg,
+        }}>
+          {/* logo */}
+          <div style={{
+            padding: '20px 18px 22px', display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <Logo size={28}/>
+            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.3, color: T.text }}>MyCabinet</div>
+            <div style={{
+              padding: '1px 6px', borderRadius: 4, fontSize: 9.5, fontWeight: 700,
+              color: T.text2, background: T.bgSunk, letterSpacing: 0.5, marginLeft: 'auto',
+            }}>PRO</div>
+          </div>
+
+          {/* nav */}
+          <div style={{ padding: '0 10px', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {sections.map((s, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 11,
+                padding: '8px 10px', borderRadius: 8,
+                background: s.active ? T.card : 'transparent',
+                border: s.active ? `1px solid ${T.border}` : '1px solid transparent',
+                boxShadow: s.active ? '0 1px 2px rgba(0,0,0,0.03)' : 'none',
+                cursor: 'pointer',
+              }}>
+                <Icon name={s.icon} size={17} color={s.active ? T.brand : T.text2} strokeWidth={1.8}/>
+                <span style={{
+                  flex: 1, fontSize: 13.5, fontWeight: s.active ? 600 : 500,
+                  color: s.active ? T.text : T.text2, letterSpacing: -0.1,
+                }}>{s.label}</span>
+                {s.count != null && (
+                  <span style={{
+                    fontSize: 11, color: s.active ? T.brand : T.text3, fontWeight: 600,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>{s.count}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ flex: 1 }}/>
+
+          {/* cabinet identity */}
+          <div style={{
+            margin: 12, padding: 12, borderRadius: 10,
+            background: T.card, border: `1px solid ${T.border}`,
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, background: '#F0EBE0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 700, color: '#73593B',
+            }}>SD</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: T.text, letterSpacing: -0.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Sophie Dupuis</div>
+              <div style={{ fontSize: 11, color: T.text2, marginTop: 1 }}>Cabinet Dupuis</div>
+            </div>
+            <Icon name="chevD" size={14} color={T.text3} strokeWidth={2}/>
+          </div>
+        </div>
+      );
+    }
+
+    function StatusPill({ status }) {
+      // 'urgent', 'late', 'on-track', 'idle'
+      const map = {
+        'urgent':   { tone: 'amber', label: 'À traiter' },
+        'late':     { tone: 'red',   label: 'En retard' },
+        'on-track': { tone: 'green', label: 'À jour' },
+        'idle':     { tone: 'gray',  label: 'Inactif' },
+      };
+      const it = map[status];
+      return <Pill tone={it.tone}>{it.label}</Pill>;
+    }
+
+    function ProgressBar({ pct, tone }) {
+      const c = tone === 'amber' ? T.amber : tone === 'red' ? T.red : T.green;
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            flex: 1, height: 6, background: T.bgSunk, borderRadius: 3, overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', width: `${pct}%`, background: c, borderRadius: 3,
+            }}/>
+          </div>
+          <span style={{
+            fontSize: 12, fontWeight: 600, color: T.text, letterSpacing: -0.1,
+            fontVariantNumeric: 'tabular-nums', minWidth: 28, textAlign: 'right',
+          }}>{pct}%</span>
+        </div>
+      );
+    }
+
+    function Row({ avatar, name, company, siret, completion, completionTone, nextDeadline, dueTone, missing, lastActivity, status, highlighted }) {
+      return (
+        <tr style={{ background: highlighted ? '#FDFCFA' : T.card }}>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, background: avatar.bg, color: avatar.fg,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, letterSpacing: 0.2,
+              }}>{avatar.text}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: T.text, letterSpacing: -0.1 }}>{name}</div>
+                <div style={{ fontSize: 11.5, color: T.text2, marginTop: 1 }}>{company}</div>
+              </div>
+            </div>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <span style={{
+              fontSize: 11.5, color: T.text2, fontWeight: 500,
+              fontFamily: '"JetBrains Mono", ui-monospace, monospace', letterSpacing: -0.1,
+            }}>{siret}</span>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}`, minWidth: 140 }}>
+            <ProgressBar pct={completion} tone={completionTone}/>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.text, letterSpacing: -0.1 }}>{nextDeadline.title}</div>
+            <div style={{ fontSize: 11.5, color: dueTone === 'red' ? T.red : dueTone === 'amber' ? T.amber : T.text2, fontWeight: 500, marginTop: 1 }}>{nextDeadline.due}</div>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}`, textAlign: 'center' }}>
+            {missing > 0 ? (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: 24, height: 22, padding: '0 7px',
+                background: T.redT, color: T.red,
+                borderRadius: 999, fontSize: 12, fontWeight: 700,
+              }}>{missing}</span>
+            ) : (
+              <span style={{ color: T.text3, fontSize: 13 }}>—</span>
+            )}
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <span style={{ fontSize: 12.5, color: T.text2, fontWeight: 500 }}>{lastActivity}</span>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}` }}>
+            <StatusPill status={status}/>
+          </td>
+          <td style={{ padding: '12px 14px', borderBottom: `1px solid ${T.border}`, textAlign: 'right' }}>
+            <Icon name="chevR" size={14} color={T.text3} strokeWidth={2}/>
+          </td>
+        </tr>
+      );
+    }
+
+    function CabinetClients() {
+      const clients = [
+        { name: 'Marie Martin', company: 'SARL Boulangerie Martin', siret: '824 117 462', avatar: { text: 'MM', bg: '#F0EBE0', fg: '#73593B' }, completion: 78, completionTone: 'amber', nextDeadline: { title: 'TVA — juillet', due: 'dans 5 jours' }, dueTone: 'amber', missing: 2, lastActivity: 'il y a 2 h', status: 'urgent', highlighted: true },
+        { name: 'Antoine Roux', company: 'Roux Plomberie', siret: '512 884 117', avatar: { text: 'AR', bg: T.brandT, fg: T.brand }, completion: 100, completionTone: 'green', nextDeadline: { title: 'DSN — juillet', due: 'dans 21 jours' }, dueTone: 'gray', missing: 0, lastActivity: 'hier', status: 'on-track' },
+        { name: 'Léa Brun', company: 'Brun Architecture', siret: '907 442 113', avatar: { text: 'LB', bg: T.greenT, fg: T.green }, completion: 45, completionTone: 'red', nextDeadline: { title: 'CFE — 1er acompte', due: 'il y a 58 jours' }, dueTone: 'red', missing: 4, lastActivity: '3 jours', status: 'late' },
+        { name: 'Karim Hadj', company: 'Karim Coiffure', siret: '633 779 421', avatar: { text: 'KH', bg: '#F2E8F0', fg: '#7C3A6A' }, completion: 92, completionTone: 'green', nextDeadline: { title: 'TVA — juillet', due: 'dans 5 jours' }, dueTone: 'amber', missing: 0, lastActivity: 'aujourd\'hui', status: 'on-track' },
+        { name: 'Émilie Petit', company: 'Petit & Fils SAS', siret: '744 110 982', avatar: { text: 'EP', bg: T.amberT, fg: T.amber }, completion: 67, completionTone: 'amber', nextDeadline: { title: 'IS — 3ème acompte', due: 'dans 1 mois' }, dueTone: 'gray', missing: 1, lastActivity: '4 jours', status: 'urgent' },
+        { name: 'Yves Lambert', company: 'Lambert Conseil', siret: '298 553 027', avatar: { text: 'YL', bg: T.bgSunk, fg: T.text2 }, completion: 0, completionTone: 'red', nextDeadline: { title: 'Aucune', due: '—' }, dueTone: 'gray', missing: 0, lastActivity: '6 sem.', status: 'idle' },
+      ];
+
+      return (
+        <div style={{
+          display: 'flex', height: '100%', background: T.bg,
+          fontFamily: "'Inter', -apple-system, system-ui, sans-serif",
+        }}>
+          <Sidebar/>
+
+          {/* main */}
+          <div className="hide-scroll" style={{ flex: 1, overflowY: 'auto' }}>
+            {/* topbar */}
+            <div style={{
+              padding: '20px 28px 16px',
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+              borderBottom: `1px solid ${T.border}`,
+            }}>
+              <div>
+                <div style={{ fontSize: 11.5, color: T.text2, fontWeight: 500, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                  Cabinet Dupuis & Associés
+                </div>
+                <div style={{
+                  fontSize: 22, fontWeight: 700, letterSpacing: -0.4, color: T.text,
+                  marginTop: 4, display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  Mes clients
+                  <span style={{
+                    fontSize: 13, color: T.text2, fontWeight: 600,
+                    padding: '2px 9px', background: T.bgSunk, borderRadius: 6,
+                  }}>24</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '0 12px', height: 36, borderRadius: 8,
+                  background: T.card, border: `1px solid ${T.borderS}`,
+                  width: 240,
+                }}>
+                  <Icon name="search" size={15} color={T.text3} strokeWidth={1.8}/>
+                  <span style={{ fontSize: 13, color: T.text3, flex: 1 }}>Rechercher un client…</span>
+                  <span style={{
+                    fontSize: 11, color: T.text3, fontWeight: 600,
+                    padding: '1px 5px', border: `1px solid ${T.border}`, borderRadius: 4,
+                  }}>⌘ K</span>
+                </div>
+                <button style={{
+                  height: 36, padding: '0 12px', borderRadius: 8,
+                  background: T.card, border: `1px solid ${T.borderS}`,
+                  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, color: T.text, fontFamily: 'inherit',
+                }}>
+                  <Icon name="filter" size={14} color={T.text2} strokeWidth={1.9}/>
+                  Filtrer
+                </button>
+                <button style={{
+                  height: 36, padding: '0 14px', borderRadius: 8,
+                  background: T.brand, border: 'none',
+                  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, color: '#fff', fontFamily: 'inherit',
+                }}>
+                  <Icon name="plus" size={14} color="#fff" strokeWidth={2.4}/>
+                  Nouveau client
+                </button>
+              </div>
+            </div>
+
+            {/* stats strip */}
+            <div style={{
+              padding: '14px 28px',
+              display: 'flex', gap: 28,
+              borderBottom: `1px solid ${T.border}`,
+              background: T.bg,
+            }}>
+              {[
+                { v: '11', l: 'Échéances cette semaine', c: T.text },
+                { v: '4', l: 'Clients en retard', c: T.red },
+                { v: '23', l: 'Documents en attente', c: T.amber },
+                { v: '92%', l: 'Taux de complétude moyen', c: T.green },
+              ].map((s, i) => (
+                <div key={i} style={{
+                  display: 'flex', flexDirection: 'column', gap: 2,
+                  paddingRight: 28, borderRight: i < 3 ? `1px solid ${T.border}` : 'none',
+                }}>
+                  <div style={{
+                    fontSize: 22, fontWeight: 700, color: s.c, letterSpacing: -0.5,
+                    fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+                  }}>{s.v}</div>
+                  <div style={{ fontSize: 11.5, color: T.text2, fontWeight: 500 }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* tabs */}
+            <div style={{
+              padding: '12px 28px 0', display: 'flex', gap: 18,
+              borderBottom: `1px solid ${T.border}`,
+            }}>
+              {['Tous (24)','À traiter (5)','En retard (4)','À jour (15)'].map((t, i) => (
+                <div key={i} style={{
+                  paddingBottom: 12, paddingTop: 2,
+                  borderBottom: i === 0 ? `2px solid ${T.brand}` : '2px solid transparent',
+                  fontSize: 13, fontWeight: i === 0 ? 600 : 500,
+                  color: i === 0 ? T.text : T.text2,
+                  cursor: 'pointer',
+                }}>{t}</div>
+              ))}
+            </div>
+
+            {/* table */}
+            <table style={{
+              width: '100%', borderCollapse: 'collapse', fontSize: 13,
+            }}>
+              <thead>
+                <tr style={{ background: T.bg }}>
+                  {['Client','SIRET','Complétude','Prochaine échéance','Docs ⚠', 'Dernière activité', 'Statut',''].map((h, i) => (
+                    <th key={i} style={{
+                      padding: '10px 14px', textAlign: i === 4 ? 'center' : 'left',
+                      fontSize: 11, fontWeight: 600, color: T.text2,
+                      letterSpacing: 0.6, textTransform: 'uppercase',
+                      borderBottom: `1px solid ${T.border}`,
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c, i) => <Row key={i} {...c}/>)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <ChromeWindow
+          width={1024} height={768}
+          tabs={[{ title: 'Clients — MyCabinet', favicon: true }]}
+          url="app.mycabinet.fr/clients"
+        >
+          <CabinetClients/>
+        </ChromeWindow>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

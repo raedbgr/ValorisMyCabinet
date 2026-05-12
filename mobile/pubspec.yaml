@@ -1,0 +1,48 @@
+name: valoris_my_cabinet
+description: "MyCabinet — Portail client pour cabinets comptables"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  get: ^4.6.6
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Date/time
+  intl: ^0.19.0
+
+  # Calendar
+  table_calendar: ^3.1.2
+
+  # File handling
+  file_picker: ^8.0.7
+  image_picker: ^1.1.2
+  path_provider: ^2.1.4
+
+  # Networking (for SSE chat streaming)
+  http: ^1.2.2
+
+  # UI utilities
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+
+  # Permissions
+  permission_handler: ^11.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

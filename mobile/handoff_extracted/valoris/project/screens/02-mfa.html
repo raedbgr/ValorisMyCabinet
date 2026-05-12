@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Vérification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    function OTPBox({ value, active }) {
+      return (
+        <div style={{
+          width: 46, height: 56, borderRadius: 10,
+          background: T.card,
+          border: `1.5px solid ${active ? T.brand : value ? T.text : T.borderS}`,
+          boxShadow: active ? `0 0 0 3px ${T.brand}1A` : 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 24, fontWeight: 600, color: T.text,
+          letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums',
+          position: 'relative',
+        }}>
+          {value}
+          {active && !value && (
+            <div style={{
+              width: 2, height: 24, background: T.brand,
+              animation: 'caret 1s steps(2) infinite',
+            }}/>
+          )}
+        </div>
+      );
+    }
+
+    function MFAScreen() {
+      const code = ['4','7','2','9'];
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column',
+          padding: '64px 24px 0', boxSizing: 'border-box',
+        }}>
+          {/* back */}
+          <div style={{ paddingTop: 8 }}>
+            <button style={{
+              width: 38, height: 38, borderRadius: 10, background: T.card,
+              border: `1px solid ${T.border}`, padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="chevL" size={20} color={T.text} strokeWidth={2}/>
+            </button>
+          </div>
+
+          {/* lock icon hero */}
+          <div style={{
+            paddingTop: 40, paddingBottom: 28,
+            display: 'flex', flexDirection: 'column', gap: 20,
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: 14, background: T.brandT,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="lock" size={24} color={T.brand} strokeWidth={1.8}/>
+            </div>
+            <div>
+              <h1 style={{
+                margin: 0, fontSize: 26, fontWeight: 700,
+                letterSpacing: -0.7, lineHeight: 1.15, color: T.text,
+              }}>Vérification de sécurité</h1>
+              <p style={{
+                margin: '8px 0 0', fontSize: 14.5, lineHeight: 1.45,
+                color: T.text2, letterSpacing: -0.05, maxWidth: 300,
+              }}>Saisissez le code à 6 chiffres que nous venons d'envoyer par SMS au numéro •••• 84.</p>
+            </div>
+          </div>
+
+          {/* OTP row */}
+          <div style={{
+            display: 'flex', gap: 8, justifyContent: 'space-between',
+          }}>
+            {[0,1,2,3,4,5].map(i => (
+              <OTPBox key={i} value={code[i] || ''} active={i === 4}/>
+            ))}
+          </div>
+
+          {/* resend with countdown */}
+          <div style={{
+            marginTop: 20,
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 13.5,
+          }}>
+            <span style={{ color: T.text2 }}>Vous n'avez rien reçu ?</span>
+            <button disabled style={{
+              padding: 0, background: 'transparent', border: 'none',
+              color: T.text3, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
+              cursor: 'not-allowed',
+            }}>Renvoyer le code · 00:47</button>
+          </div>
+
+          <div style={{ flex: 1 }}/>
+
+          {/* CTA */}
+          <div style={{ paddingBottom: 16 }}>
+            <button style={{
+              width: '100%', height: 52, borderRadius: 8, border: 'none',
+              background: T.brand, color: '#fff', fontSize: 16, fontWeight: 600,
+              letterSpacing: -0.1, fontFamily: 'inherit', cursor: 'pointer',
+              boxShadow: '0 1px 0 rgba(255,255,255,0.12) inset, 0 6px 16px -6px rgba(30,58,95,0.5)',
+            }}>Vérifier</button>
+
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 8, paddingTop: 16,
+            }}>
+              <Icon name="lock" size={12} color={T.text3} strokeWidth={2}/>
+              <span style={{ fontSize: 12, color: T.text3, letterSpacing: -0.05 }}>
+                Connexion chiffrée — vos données restent privées
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <MFAScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+  <style>@keyframes caret { 50% { opacity: 0; } }</style>
+</body>
+</html>

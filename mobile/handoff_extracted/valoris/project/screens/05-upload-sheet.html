@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Ajouter un document</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    // ─── Background: greyed-out Documents screen behind the sheet ───
+    function DimmedBackground() {
+      return (
+        <div style={{
+          position: 'absolute', inset: 0, background: T.bg,
+          paddingTop: 56, opacity: 1,
+        }}>
+          {/* faked header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 20px',
+          }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: T.text, letterSpacing: -0.7 }}>Documents</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: T.card, border: `1px solid ${T.border}` }}/>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: T.card, border: `1px solid ${T.border}` }}/>
+            </div>
+          </div>
+          <div style={{ padding: '0 16px', display: 'flex', gap: 8 }}>
+            {[60,70,55,90].map((w,i) => (
+              <div key={i} style={{
+                height: 30, width: w, borderRadius: 999,
+                background: i === 0 ? T.brand : T.card,
+                border: i === 0 ? 'none' : `1px solid ${T.border}`,
+              }}/>
+            ))}
+          </div>
+          <div style={{ padding: '20px 16px 0' }}>
+            <div style={{
+              background: T.card, borderRadius: 12, border: `1px solid ${T.border}`,
+              padding: 14, height: 80,
+            }}/>
+          </div>
+        </div>
+      );
+    }
+
+    function UploadOption({ icon, title, sub, iconColor }) {
+      return (
+        <button style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+          padding: '14px 16px', borderRadius: 14,
+          background: T.card, border: `1px solid ${T.border}`,
+          cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 11,
+            background: iconColor.bg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <Icon name={icon} size={22} color={iconColor.fg} strokeWidth={1.8}/>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, letterSpacing: -0.15 }}>{title}</div>
+            <div style={{ fontSize: 12.5, color: T.text2, marginTop: 2, letterSpacing: -0.05 }}>{sub}</div>
+          </div>
+          <Icon name="chevR" size={18} color={T.text3} strokeWidth={2}/>
+        </button>
+      );
+    }
+
+    function UploadSheetScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', position: 'relative', overflow: 'hidden',
+          background: T.bg,
+        }}>
+          <DimmedBackground/>
+
+          {/* scrim */}
+          <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(20, 25, 32, 0.45)',
+          }}/>
+
+          {/* Sheet */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0,
+            background: T.bg, borderRadius: '24px 24px 0 0',
+            padding: '12px 16px 30px',
+            boxShadow: '0 -12px 32px -8px rgba(0,0,0,0.18)',
+          }}>
+            {/* grabber */}
+            <div style={{
+              width: 36, height: 4, borderRadius: 2,
+              background: T.borderS, margin: '0 auto 14px',
+            }}/>
+
+            {/* title row */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0 4px 14px',
+            }}>
+              <div style={{
+                fontSize: 19, fontWeight: 700, color: T.text, letterSpacing: -0.3,
+              }}>Ajouter un document</div>
+              <button style={{
+                width: 32, height: 32, borderRadius: '50%', background: T.bgSunk,
+                border: 'none', padding: 0, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon name="x" size={16} color={T.text2} strokeWidth={2.2}/>
+              </button>
+            </div>
+
+            {/* assistant hint */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 12px', borderRadius: 10,
+              background: T.amberT, border: `1px solid #F6E2C8`,
+              marginBottom: 14,
+            }}>
+              <Icon name="sparkles" size={15} color={T.amber} strokeWidth={2.2}/>
+              <div style={{ fontSize: 12.5, color: '#85530E', fontWeight: 500, letterSpacing: -0.05, lineHeight: 1.4 }}>
+                Le document sera classé automatiquement par l'assistant.
+              </div>
+            </div>
+
+            {/* options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UploadOption
+                icon="camera"
+                title="Prendre une photo"
+                sub="Idéal pour les reçus et tickets"
+                iconColor={{ bg: T.brandT, fg: T.brand }}
+              />
+              <UploadOption
+                icon="image"
+                title="Choisir depuis la galerie"
+                sub="Photos déjà sur votre téléphone"
+                iconColor={{ bg: T.greenT, fg: T.green }}
+              />
+              <UploadOption
+                icon="upload"
+                title="Importer un fichier"
+                sub="PDF, Word, Excel — jusqu'à 25 Mo"
+                iconColor={{ bg: T.amberT, fg: T.amber }}
+              />
+            </div>
+
+            {/* cancel */}
+            <button style={{
+              width: '100%', height: 48, marginTop: 16, borderRadius: 8,
+              background: 'transparent', border: 'none',
+              color: T.text2, fontSize: 15, fontWeight: 600,
+              fontFamily: 'inherit', cursor: 'pointer', letterSpacing: -0.1,
+            }}>Annuler</button>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <UploadSheetScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

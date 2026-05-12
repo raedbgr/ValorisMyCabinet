@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Calendrier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    // ───────────────────────────────────────────────
+    // Type badge (TVA / IS / DSN / CFE)
+    // ───────────────────────────────────────────────
+    function TypeBadge({ code, tone = 'brand' }) {
+      const tones = {
+        brand: { bg: T.brandT, fg: T.brand },
+        amber: { bg: T.amberT, fg: T.amber },
+        green: { bg: T.greenT, fg: T.green },
+        red:   { bg: T.redT,   fg: T.red },
+        gray:  { bg: T.bgSunk, fg: T.text2 },
+      };
+      const c = tones[tone];
+      return (
+        <div style={{
+          width: 44, height: 44, borderRadius: 10,
+          background: c.bg, color: c.fg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 700, letterSpacing: 0.4,
+          flexShrink: 0,
+        }}>{code}</div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Deadline row card
+    // ───────────────────────────────────────────────
+    function DeadlineCard({ code, codeTone, title, period, due, relative, pill, pillTone, missing, missingTone = 'red', borderColor, complete }) {
+      return (
+        <div style={{
+          background: T.card, borderRadius: 14, border: `1px solid ${T.border}`,
+          padding: '14px 14px 14px 16px',
+          display: 'flex', gap: 12, position: 'relative', overflow: 'hidden',
+          opacity: complete ? 0.78 : 1,
+        }}>
+          {/* color-coded left border */}
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: borderColor,
+          }} />
+          <TypeBadge code={code} tone={codeTone}/>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* row 1 */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{
+                fontSize: 15, fontWeight: 600, color: T.text,
+                letterSpacing: -0.2, lineHeight: 1.25,
+                textDecoration: complete ? 'line-through' : 'none',
+                textDecorationColor: T.text3,
+              }}>{title}</div>
+              <Pill tone={pillTone}>{pill}</Pill>
+            </div>
+            {/* row 2 */}
+            <div style={{
+              fontSize: 12.5, color: T.text2, marginTop: 3, fontWeight: 500,
+            }}>{period}</div>
+
+            {/* row 3 — due + missing */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${T.border}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Icon name="clock" size={13} color={T.text3} strokeWidth={1.9}/>
+                <span style={{ fontSize: 12, color: T.text2, fontWeight: 500 }}>{due}</span>
+                <span style={{
+                  fontSize: 12, fontWeight: 600,
+                  color: pillTone === 'amber' ? T.amber : pillTone === 'red' ? T.red : T.text2,
+                }}>· {relative}</span>
+              </div>
+              {missing != null && (
+                <>
+                  <div style={{ flex: 1 }}/>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: '50%',
+                      background: missing > 0 ? T[missingTone] : T.green,
+                    }} />
+                    <span style={{
+                      fontSize: 12, fontWeight: 600,
+                      color: missing > 0 ? T[missingTone] : T.green,
+                    }}>
+                      {missing > 0 ? `${missing} doc${missing>1?'s':''} manquant${missing>1?'s':''}` : 'Complet'}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Section header
+    // ───────────────────────────────────────────────
+    function SectionLabel({ children }) {
+      return (
+        <div style={{
+          padding: '18px 4px 10px',
+          fontSize: 11, fontWeight: 600, color: T.text2,
+          letterSpacing: 1, textTransform: 'uppercase',
+        }}>{children}</div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Toggle segment Liste / Mois
+    // ───────────────────────────────────────────────
+    function Segment({ value, onChange }) {
+      const items = [
+        { key: 'list', label: 'Liste', icon: 'list' },
+        { key: 'month', label: 'Mois', icon: 'calendar' },
+      ];
+      return (
+        <div style={{
+          display: 'inline-flex', background: T.bgSunk, padding: 3,
+          borderRadius: 9, border: `1px solid ${T.border}`,
+        }}>
+          {items.map(it => (
+            <button key={it.key} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 7, border: 'none',
+              background: value === it.key ? T.card : 'transparent',
+              color: value === it.key ? T.text : T.text2,
+              fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+              boxShadow: value === it.key ? '0 1px 2px rgba(0,0,0,0.04), 0 1px 0 rgba(0,0,0,0.02)' : 'none',
+              cursor: 'pointer', letterSpacing: -0.1,
+            }}>
+              <Icon name={it.icon} size={14} color={value === it.key ? T.text : T.text2} strokeWidth={2}/>
+              {it.label}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Calendar screen
+    // ───────────────────────────────────────────────
+    function CalendarScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div className="hide-scroll" style={{
+            flex: 1, overflowY: 'auto',
+            paddingTop: 56, paddingBottom: 20,
+          }}>
+            {/* header */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+              padding: '14px 20px 4px',
+            }}>
+              <h1 style={{
+                margin: 0, fontSize: 28, fontWeight: 700,
+                letterSpacing: -0.7, color: T.text, lineHeight: 1,
+              }}>Calendrier</h1>
+              <button style={{
+                width: 38, height: 38, borderRadius: 10, background: T.card,
+                border: `1px solid ${T.border}`, padding: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              }}>
+                <Icon name="filter" size={18} color={T.text} strokeWidth={1.8}/>
+              </button>
+            </div>
+            <div style={{ padding: '10px 20px 0' }}>
+              <Segment value="list"/>
+            </div>
+
+            {/* pull-to-refresh indicator hint */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 6, padding: '10px 0 0',
+              fontSize: 11, color: T.text3, fontWeight: 500,
+            }}>
+              <Icon name="refresh" size={12} color={T.text3} strokeWidth={2}/>
+              Tirer pour actualiser
+            </div>
+
+            {/* À VENIR */}
+            <div style={{ padding: '0 16px' }}>
+              <SectionLabel>À venir</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <DeadlineCard
+                  code="TVA" codeTone="amber"
+                  title="Déclaration TVA"
+                  period="Période — Juillet 2026"
+                  due="20 août" relative="dans 5 jours"
+                  pill="Urgent" pillTone="amber"
+                  missing={2}
+                  borderColor={T.amber}
+                />
+                <DeadlineCard
+                  code="DSN" codeTone="brand"
+                  title="DSN mensuelle"
+                  period="Période — Juillet 2026"
+                  due="5 sept." relative="dans 21 jours"
+                  pill="À venir" pillTone="gray"
+                  missing={0}
+                  borderColor={T.gray}
+                />
+                <DeadlineCard
+                  code="IS" codeTone="brand"
+                  title="Acompte d'impôt sur les sociétés"
+                  period="3ème acompte 2026"
+                  due="15 sept." relative="dans 1 mois"
+                  pill="À venir" pillTone="gray"
+                  missing={1}
+                  missingTone="amber"
+                  borderColor={T.gray}
+                />
+              </div>
+
+              <SectionLabel>En retard</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <DeadlineCard
+                  code="CFE" codeTone="red"
+                  title="Acompte de CFE"
+                  period="1er acompte 2026"
+                  due="15 juin" relative="il y a 58 jours"
+                  pill="En retard" pillTone="red"
+                  missing={1}
+                  borderColor={T.red}
+                />
+              </div>
+
+              <SectionLabel>Complétées</SectionLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <DeadlineCard
+                  code="TVA" codeTone="green"
+                  title="Déclaration TVA"
+                  period="Période — Juin 2026"
+                  due="20 juill." relative="il y a 23 jours"
+                  pill="Déposée" pillTone="green"
+                  missing={0}
+                  borderColor={T.green}
+                  complete
+                />
+              </div>
+            </div>
+          </div>
+
+          <BottomNav active="cal" />
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <CalendarScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

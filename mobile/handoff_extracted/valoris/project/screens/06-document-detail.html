@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Document</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    // Invoice preview rendered with a CSS scan look
+    function InvoicePreview() {
+      return (
+        <div style={{
+          height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: '#E8E5DD',
+          backgroundImage: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.6), transparent 50%), radial-gradient(circle at 70% 80%, rgba(0,0,0,0.05), transparent 50%)',
+        }}>
+          <div style={{
+            width: 220, height: 290, background: '#FCFBF7',
+            boxShadow: '0 24px 40px -12px rgba(0,0,0,0.25), 0 0 0 0.5px rgba(0,0,0,0.06)',
+            padding: '20px 18px', boxSizing: 'border-box',
+            display: 'flex', flexDirection: 'column', gap: 7,
+            fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            transform: 'rotate(-1.2deg)',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#1A1A1A', letterSpacing: 0.3 }}>SARL BOULANGERIE</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#1A1A1A', letterSpacing: 0.3 }}>MARTIN</div>
+                <div style={{ fontSize: 7, color: '#6B6B6B', marginTop: 4, lineHeight: 1.4 }}>14 rue de la Paix<br/>75002 Paris</div>
+              </div>
+              <div style={{
+                fontSize: 8, fontWeight: 700, padding: '3px 7px',
+                border: '1px solid #1A1A1A', borderRadius: 2,
+              }}>FACTURE</div>
+            </div>
+
+            <div style={{ height: 1, background: '#D8D4C8', margin: '4px 0' }}/>
+
+            <div style={{ fontSize: 8, color: '#6B6B6B', lineHeight: 1.5 }}>
+              N° FA-2026-0742<br/>
+              Date: 22/07/2026<br/>
+              Échéance: 22/08/2026
+            </div>
+
+            <div style={{ height: 1, background: '#D8D4C8', margin: '4px 0' }}/>
+
+            {/* table */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 8, color: '#1A1A1A' }}>
+              {['Farine T65 — 25kg','Levure boulangère','Beurre AOP','Sucre cristal'].map((l,i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{l}</span>
+                  <span style={{ fontWeight: 600 }}>{['78,40','22,10','94,30','17,20'][i]}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ height: 1, background: '#D8D4C8', margin: '4px 0' }}/>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 700, color: '#1A1A1A' }}>
+              <span>TOTAL HT</span><span>260,00 €</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#6B6B6B' }}>
+              <span>TVA 20%</span><span>52,00 €</span>
+            </div>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between',
+              fontSize: 11, fontWeight: 700, color: '#1A1A1A',
+              padding: '6px 8px', background: '#F0EBDE', marginTop: 2,
+            }}>
+              <span>TOTAL TTC</span><span>312,00 €</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function FieldRow({ label, value, mono }) {
+      return (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '11px 0', borderBottom: `1px solid ${T.border}`,
+        }}>
+          <span style={{ fontSize: 13, color: T.text2, fontWeight: 500 }}>{label}</span>
+          <span style={{
+            fontSize: 14, color: T.text, fontWeight: 600, letterSpacing: -0.1,
+            fontFamily: mono ? '"JetBrains Mono", ui-monospace, monospace' : 'inherit',
+          }}>{value}</span>
+        </div>
+      );
+    }
+
+    function DocDetailScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column', position: 'relative',
+        }}>
+          {/* Preview top half */}
+          <div style={{
+            height: '46%', minHeight: 360, position: 'relative', overflow: 'hidden',
+          }}>
+            <InvoicePreview/>
+
+            {/* top bar overlay */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0,
+              paddingTop: 56, padding: '56px 16px 12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0.85), transparent)',
+            }}>
+              <button style={iconBtn}>
+                <Icon name="chevL" size={20} color={T.text} strokeWidth={2}/>
+              </button>
+              <div style={{ fontSize: 12, color: T.text2, fontWeight: 600, letterSpacing: 0.3 }}>1 / 1</div>
+              <button style={iconBtn}>
+                <Icon name="upload" size={18} color={T.text} strokeWidth={1.8}/>
+              </button>
+            </div>
+          </div>
+
+          {/* Detail panel */}
+          <div className="hide-scroll" style={{
+            flex: 1, overflowY: 'auto',
+            background: T.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+            marginTop: -16, padding: '16px 20px 24px',
+            boxShadow: '0 -8px 24px -8px rgba(0,0,0,0.08)',
+            position: 'relative',
+          }}>
+            {/* grabber */}
+            <div style={{
+              width: 36, height: 4, borderRadius: 2,
+              background: T.borderS, margin: '0 auto 14px',
+            }}/>
+
+            {/* filename + category */}
+            <div style={{
+              fontSize: 17, fontWeight: 700, color: T.text, letterSpacing: -0.3,
+              lineHeight: 1.25,
+            }}>Facture_Farine_Moulin.pdf</div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <Pill tone="brand">Facture fournisseur</Pill>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '3px 8px', borderRadius: 999,
+                background: T.greenT, color: T.green,
+                fontSize: 11, fontWeight: 600, letterSpacing: 0.1,
+              }}>
+                <Icon name="sparkles" size={10} color={T.green} strokeWidth={2.4}/>
+                IA · 98%
+              </div>
+            </div>
+
+            {/* extracted fields */}
+            <div style={{
+              marginTop: 16, padding: '4px 14px',
+              background: T.card, borderRadius: 12, border: `1px solid ${T.border}`,
+            }}>
+              <FieldRow label="Date" value="22 juillet 2026"/>
+              <FieldRow label="Fournisseur" value="Moulin de Brie"/>
+              <FieldRow label="Montant HT" value="260,00 €" mono/>
+              <FieldRow label="TVA 20%" value="52,00 €" mono/>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between',
+                padding: '11px 0', alignItems: 'center',
+              }}>
+                <span style={{ fontSize: 13, color: T.text2, fontWeight: 500 }}>Montant TTC</span>
+                <span style={{
+                  fontSize: 16, color: T.text, fontWeight: 700,
+                  fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                  letterSpacing: -0.2,
+                }}>312,00 €</span>
+              </div>
+            </div>
+
+            {/* link to deadline */}
+            <a style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              marginTop: 12, padding: '12px 14px', borderRadius: 12,
+              background: T.brandT, border: `1px solid #DDE5EF`,
+              textDecoration: 'none', cursor: 'pointer',
+            }}>
+              <Icon name="link" size={16} color={T.brand} strokeWidth={2}/>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, color: T.brand, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase' }}>Lié à</div>
+                <div style={{ fontSize: 13.5, color: T.text, fontWeight: 600, marginTop: 1 }}>Déclaration TVA — Juillet 2026</div>
+              </div>
+              <Icon name="chevR" size={16} color={T.brand} strokeWidth={2}/>
+            </a>
+
+            {/* actions */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button style={actionBtn}>
+                <Icon name="edit" size={16} color={T.text} strokeWidth={1.8}/>
+                Modifier la catégorie
+              </button>
+              <button style={{...actionBtn, color: T.red, borderColor: '#FAD0D0'}}>
+                <Icon name="trash" size={16} color={T.red} strokeWidth={1.8}/>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const iconBtn = {
+      width: 38, height: 38, borderRadius: 10, background: T.card,
+      border: `1px solid ${T.border}`, padding: 0, cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    };
+    const actionBtn = {
+      flex: 1, height: 44, borderRadius: 10,
+      background: T.card, border: `1px solid ${T.borderS}`,
+      fontSize: 13, fontWeight: 600, color: T.text,
+      fontFamily: 'inherit', cursor: 'pointer', letterSpacing: -0.05,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+    };
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <DocDetailScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

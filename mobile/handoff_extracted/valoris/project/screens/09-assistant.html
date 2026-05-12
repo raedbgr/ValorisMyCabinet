@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>MyCabinet — Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDECE8; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 0; }
+  .hide-scroll::-webkit-scrollbar { display: none; }
+  .hide-scroll { scrollbar-width: none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="../lib/ios-frame.jsx"></script>
+  <script type="text/babel" src="../lib/mc-shared.jsx"></script>
+
+  <script type="text/babel">
+    // ───────────────────────────────────────────────
+    // Header
+    // ───────────────────────────────────────────────
+    function ChatHeader() {
+      return (
+        <div style={{
+          paddingTop: 56, paddingBottom: 12,
+          background: T.bg, borderBottom: `1px solid ${T.border}`,
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '6px 16px 0',
+          }}>
+            <button style={{
+              width: 36, height: 36, borderRadius: 10, background: 'transparent',
+              border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="chevL" size={22} color={T.text} strokeWidth={2}/>
+            </button>
+
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: T.amber, position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="sparkles" size={20} color="#fff" strokeWidth={2}/>
+              <div style={{
+                position: 'absolute', bottom: -2, right: -2,
+                width: 12, height: 12, borderRadius: '50%',
+                background: T.green, border: `2.5px solid ${T.bg}`,
+              }}/>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 15, fontWeight: 700, color: T.text, letterSpacing: -0.2,
+              }}>Assistant MyCabinet</div>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 11.5, color: T.green, fontWeight: 600, marginTop: 1,
+              }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: T.green }}/>
+                En ligne · répond en quelques secondes
+              </div>
+            </div>
+
+            <button style={{
+              width: 36, height: 36, borderRadius: 10, background: 'transparent',
+              border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="info" size={20} color={T.text2} strokeWidth={1.8}/>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Day divider
+    // ───────────────────────────────────────────────
+    function DayDivider({ children }) {
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '4px 0 8px',
+        }}>
+          <div style={{ flex: 1, height: 1, background: T.border }}/>
+          <div style={{
+            fontSize: 11, color: T.text3, fontWeight: 600,
+            letterSpacing: 0.8, textTransform: 'uppercase',
+          }}>{children}</div>
+          <div style={{ flex: 1, height: 1, background: T.border }}/>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Tool-call trace — collapsible pill
+    // ───────────────────────────────────────────────
+    function ToolCall({ label, expanded = false, calls = [] }) {
+      return (
+        <div style={{
+          background: '#FBFAF7', border: `1px dashed ${T.borderS}`,
+          borderRadius: 10, padding: expanded ? '10px 12px' : '8px 11px',
+          marginBottom: 8, alignSelf: 'flex-start', maxWidth: '88%',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            cursor: 'pointer',
+          }}>
+            <Icon name="search" size={13} color={T.amber} strokeWidth={2.2}/>
+            <span style={{
+              fontSize: 12.5, color: T.text2, fontWeight: 500, letterSpacing: -0.05,
+            }}>{label}</span>
+            <Icon name={expanded ? 'chevU' : 'chevD'} size={12} color={T.text3} strokeWidth={2}/>
+          </div>
+
+          {expanded && (
+            <div style={{
+              marginTop: 8, paddingTop: 8, borderTop: `1px solid ${T.border}`,
+              display: 'flex', flexDirection: 'column', gap: 6,
+            }}>
+              {calls.map((c, i) => (
+                <div key={i} style={{
+                  fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                  fontSize: 11, color: T.text2, letterSpacing: -0.1, lineHeight: 1.5,
+                }}>
+                  <span style={{ color: T.amber, fontWeight: 600 }}>{c.tool}</span>
+                  <span style={{ color: T.text3 }}>({c.args})</span>
+                  <span style={{ color: T.green, marginLeft: 6 }}>→ {c.result}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Citation chip (inline)
+    // ───────────────────────────────────────────────
+    function Citation({ name }) {
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '1px 7px 1px 5px', borderRadius: 6,
+          background: T.brandT, color: T.brand,
+          fontSize: 12.5, fontWeight: 600, letterSpacing: -0.1,
+          verticalAlign: 'baseline',
+          border: `1px solid #DDE5EF`,
+        }}>
+          <Icon name="fileText" size={11} color={T.brand} strokeWidth={2.2}/>
+          {name}
+        </span>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Assistant bubble (left)
+    // ───────────────────────────────────────────────
+    function AssistantBubble({ children, showFeedback = true, time }) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start', maxWidth: '88%' }}>
+          <div style={{
+            background: T.card, border: `1px solid ${T.border}`,
+            borderRadius: '14px 14px 14px 4px',
+            padding: '10px 13px', fontSize: 14.5, lineHeight: 1.45,
+            color: T.text, letterSpacing: -0.1,
+          }}>{children}</div>
+          {showFeedback && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              paddingLeft: 4, marginTop: -2,
+            }}>
+              <span style={{ fontSize: 10.5, color: T.text3, fontWeight: 500, marginRight: 4 }}>{time}</span>
+              <button style={iconBtn}><Icon name="thumbsUp" size={13} color={T.text3} strokeWidth={1.7}/></button>
+              <button style={iconBtn}><Icon name="thumbsDown" size={13} color={T.text3} strokeWidth={1.7}/></button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const iconBtn = {
+      width: 24, height: 24, borderRadius: 6, border: 'none',
+      background: 'transparent', padding: 0, cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    };
+
+    // ───────────────────────────────────────────────
+    // User bubble (right)
+    // ───────────────────────────────────────────────
+    function UserBubble({ children, time }) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', maxWidth: '85%' }}>
+          <div style={{
+            background: T.brand, color: '#fff',
+            borderRadius: '14px 14px 4px 14px',
+            padding: '10px 13px', fontSize: 14.5, lineHeight: 1.45,
+            letterSpacing: -0.1,
+          }}>{children}</div>
+          <span style={{ fontSize: 10.5, color: T.text3, fontWeight: 500, paddingRight: 4 }}>{time}</span>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Quick reply chips
+    // ───────────────────────────────────────────────
+    function QuickReplies({ options }) {
+      return (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: 6,
+          alignSelf: 'flex-start', maxWidth: '88%',
+        }}>
+          {options.map((o, i) => (
+            <button key={i} style={{
+              padding: '7px 12px', borderRadius: 999,
+              background: T.card, border: `1px solid ${T.brand}`,
+              color: T.brand, fontSize: 13, fontWeight: 600,
+              fontFamily: 'inherit', letterSpacing: -0.1, cursor: 'pointer',
+            }}>{o}</button>
+          ))}
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Input bar
+    // ───────────────────────────────────────────────
+    function InputBar() {
+      return (
+        <div style={{
+          padding: '10px 12px 28px',
+          borderTop: `1px solid ${T.border}`,
+          background: T.bg,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <button style={{
+            width: 40, height: 40, borderRadius: 10, background: 'transparent',
+            border: `1px solid ${T.borderS}`, padding: 0, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <Icon name="plus" size={20} color={T.text2} strokeWidth={1.8}/>
+          </button>
+          <div style={{
+            flex: 1, height: 40, borderRadius: 999,
+            background: T.card, border: `1px solid ${T.borderS}`,
+            display: 'flex', alignItems: 'center', padding: '0 6px 0 14px',
+            gap: 4,
+          }}>
+            <div style={{ flex: 1, fontSize: 14, color: T.text3, letterSpacing: -0.1 }}>
+              Écrivez à l'assistant…
+            </div>
+            <button style={{
+              width: 30, height: 30, borderRadius: '50%', background: 'transparent',
+              border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="mic" size={18} color={T.text2} strokeWidth={1.8}/>
+            </button>
+          </div>
+          <button style={{
+            width: 40, height: 40, borderRadius: '50%', background: T.amber,
+            border: 'none', padding: 0, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 12px -4px rgba(217,119,6,0.45)',
+          }}>
+            <Icon name="arrowUp" size={18} color="#fff" strokeWidth={2.5}/>
+          </button>
+        </div>
+      );
+    }
+
+    // ───────────────────────────────────────────────
+    // Screen
+    // ───────────────────────────────────────────────
+    function AssistantScreen() {
+      return (
+        <div style={{
+          height: '100%', width: '100%', background: T.bg,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <ChatHeader/>
+
+          <div className="hide-scroll" style={{
+            flex: 1, overflowY: 'auto',
+            padding: '12px 14px 8px',
+            display: 'flex', flexDirection: 'column', gap: 10,
+          }}>
+            <DayDivider>Aujourd'hui · 09:24</DayDivider>
+
+            {/* Proactive opening */}
+            <AssistantBubble time="09:24" showFeedback={false}>
+              Bonjour Marie 👋 Je viens de regarder votre déclaration TVA de juillet et il manque deux pièces.
+            </AssistantBubble>
+
+            {/* Expanded tool call trace */}
+            <ToolCall
+              label="Consultation de vos documents — 3 outils"
+              expanded
+              calls={[
+                { tool: 'list_documents', args: 'category="facture", periode="2026-07"', result: '14 trouvés' },
+                { tool: 'check_tva', args: 'periode="2026-07"', result: '2 manquants' },
+                { tool: 'match_releve', args: 'compte="LCL"', result: '2 mouvts. orphelins' },
+              ]}
+            />
+
+            {/* Detailed answer w/ citations */}
+            <AssistantBubble time="09:24">
+              Plus précisément, les factures du <strong style={{ fontWeight: 600 }}>15</strong> et <strong style={{ fontWeight: 600 }}>22 juillet</strong> ne sont pas encore enregistrées. D'après votre <Citation name="Releve_LCL_07.pdf"/>, deux mouvements de <strong style={{ fontWeight: 600 }}>148,50 €</strong> et <strong style={{ fontWeight: 600 }}>312,00 €</strong> correspondent à ces dates.
+            </AssistantBubble>
+
+            {/* User reply */}
+            <UserBubble time="09:31">
+              Ah oui, je les ai au magasin. Je peux les scanner ce soir vers 19h.
+            </UserBubble>
+
+            {/* Confirmation */}
+            <AssistantBubble time="09:31">
+              Parfait. L'échéance est le <strong style={{ fontWeight: 600 }}>20 août</strong> — dans 5 jours. Voulez‑vous que je vous envoie un rappel demain matin si elles ne sont pas encore là ?
+            </AssistantBubble>
+
+            <QuickReplies options={["Oui, à 9h", "Pas besoin"]}/>
+          </div>
+
+          <InputBar/>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <IOSDevice width={390} height={844}>
+          <AssistantScreen />
+        </IOSDevice>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
