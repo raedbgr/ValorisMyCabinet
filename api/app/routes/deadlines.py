@@ -10,10 +10,8 @@ from app.models.schemas import Deadline, DeadlineCreate
 
 router = APIRouter(prefix="/deadlines", tags=["deadlines"])
 
-# Create data folder on startup
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-DEADLINES_FILE = DATA_DIR / "deadlines.json"
+from app.services.firebase_service import fb_service
+
 
 
 # ---------------------------------------------------------------------------
@@ -36,17 +34,14 @@ def calculate_status(due_date_str: str) -> tuple[int, str]:
 
 
 def load_deadlines() -> list[dict]:
-    """Read deadlines.json and return a list (or [] if file missing)."""
-    if not DEADLINES_FILE.exists():
+    """Read deadlines from Firestore."""
+    db = fb_service.get_db()
+    if not db:
         return []
-    with open(DEADLINES_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    
+    docs = db.collection("deadlines").stream()
+    return [doc.to_dict() for doc in docs]
 
-
-def save_deadlines(deadlines: list[dict]):
-    """Write the full list back to deadlines.json."""
-    with open(DEADLINES_FILE, "w", encoding="utf-8") as f:
-        json.dump(deadlines, f, ensure_ascii=False, indent=2)
 
 
 # ---------------------------------------------------------------------------
@@ -82,9 +77,10 @@ async def create_deadline(body: DeadlineCreate):
         "type": body.type
     }
 
-    all_deadlines = load_deadlines()
-    all_deadlines.append(deadline)
-    save_deadlines(all_deadlines)
+    db = fb_service.get_db()
+    if db:
+        doc_id = f"{body.client_id}_{body.label}".replace(" ", "_").lower()
+        db.collection("deadlines").document(doc_id).set(deadline)
 
     return deadline
 
@@ -136,8 +132,15 @@ async def seed_deadlines(client_id: str):
             "status": status
         }
 
-        all_deadlines.append(deadline)
         created.append(deadline)
 
-    save_deadlines(all_deadlines)
+    db = fb_service.get_db()
+    if db:
+        batch = db.batch()
+        for deadline in created:
+            doc_id = f"{client_id}_{deadline['label']}".replace(" ", "_").lower()
+            ref = db.collection("deadlines").document(doc_id)
+            batch.set(ref, deadline)
+        batch.commit()
+        
     return created

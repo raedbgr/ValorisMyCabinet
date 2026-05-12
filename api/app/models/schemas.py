@@ -12,6 +12,13 @@ class ChatRequest(BaseModel):
     client_name: str = "Client"
 
 
+class FeedbackRequest(BaseModel):
+    message_id: str
+    client_id: str
+    is_positive: bool
+    comments: str | None = None
+
+
 class DeadlineInfo(BaseModel):
     label: str        # ex: "TVA Juillet"
     due_date: str     # ex: "2024-07-20"
@@ -85,3 +92,46 @@ class CabinetDashboard(BaseModel):
     total_clients: int
     clients: list[ClientSummary]
     generated_at: str
+
+
+# ---------------------------------------------------------------------------
+# Document Processing Schemas
+# ---------------------------------------------------------------------------
+
+class ProcessRequest(BaseModel):
+    client_id: str
+    filename: str
+
+class ExtractionResult(BaseModel):
+    method: str          # "pypdf" | "ocr_image" | "ocr_pdf"
+    pages: int
+    text_length: int
+    success: bool
+    error: str | None = None
+
+class ClassificationResult(BaseModel):
+    category: str        # facture | kbis | justificatif | releve_bancaire | ...
+    confidence: float
+    reasoning: str
+
+class ExtractedFields(BaseModel):
+    date_document: str | None = None
+    montant_total: float | None = None
+    montant_ht: float | None = None
+    montant_tva: float | None = None
+    devise: str = "TND"
+    fournisseur: str | None = None
+    client_destinataire: str | None = None
+    numero_document: str | None = None
+    description: str | None = None
+    champs_supplementaires: dict = {}
+
+class ProcessingResponse(BaseModel):
+    filename: str
+    client_id: str
+    status: str          # "processed" | "extraction_failed"
+    extraction: ExtractionResult
+    classification: ClassificationResult | None = None
+    extracted_fields: ExtractedFields | None = None
+    processing_duration_seconds: float | None = None
+

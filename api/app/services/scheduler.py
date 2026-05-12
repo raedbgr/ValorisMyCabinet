@@ -3,7 +3,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime, timedelta
 
-from app.routes.agent import run_agent_check, save_reminders, load_reminders
+from app.routes.agent import run_agent_check, save_reminder, load_reminders
 from app.routes.cabinet import get_client_ids
 from uuid import uuid4
 
@@ -25,7 +25,24 @@ async def proactive_agent_job():
     for client_id in client_ids:
         try:
             logger.info(f"Checking client: {client_id}")
-            # Run the agent analysis (reads deadlines, scans docs, calls Ollama)
+            
+            # --- Pro Move: Automatic Document Processing ---
+            # Scan for new files and process them (OCR + AI) before checking status
+            from app.services.document_processor import process_document, get_document_metadata
+            from app.routes.documents import UPLOAD_DIR
+            
+            client_dir = UPLOAD_DIR / client_id
+            if client_dir.exists():
+                from app.services.document_processor import SUPPORTED_PDF, SUPPORTED_IMG
+                for f in client_dir.iterdir():
+                    # Only process if it's a file, not a dotfile, and is a supported PDF/Image
+                    if f.is_file() and not f.name.startswith(".") and f.suffix.lower() in (SUPPORTED_PDF | SUPPORTED_IMG):
+                        # Only process if no metadata exists yet (new file)
+                        if not get_document_metadata(f):
+                            logger.info(f"Auto-processing new document: {f.name} for {client_id}")
+                            await process_document(f, client_id)
+
+            # Run the agent analysis (now with enriched data)
             result = await run_agent_check(client_id)
             
             if result.get("should_remind", False):
@@ -59,11 +76,26 @@ async def proactive_agent_job():
                     "channel": "push_notification"
                 }
 
-                all_reminders.append(reminder)
-                save_reminders(all_reminders)
+                save_reminder(reminder)
                 logger.info(f"Reminder saved for {client_id}")
                 
-                # TODO: Trigger Push Notification via Firebase here
+                # Trigger Push Notification via Firebase
+                from app.services.firebase_service import fb_service
+                fcm_token = fb_service.get_client_fcm_token(client_id)
+                
+                # If no token in DB, we can try sending to a hardcoded test token or just log it
+                if not fcm_token:
+                    logger.warning(f"No FCM token found for {client_id}, push notification skipped.")
+                    # Fallback for testing: simulate it
+                    # fcm_token = "dummy-test-token"
+                
+                if fcm_token:
+                    fb_service.send_push_notification(
+                        token=fcm_token,
+                        title="Nouvelle notification de MyCabinet",
+                        body=reminder["message"],
+                        data={"client_id": client_id, "urgency": reminder["urgency"]}
+                    )
                 
         except Exception as e:
             logger.error(f"Error processing client {client_id}: {e}")

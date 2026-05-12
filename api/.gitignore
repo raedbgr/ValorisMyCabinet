@@ -9,9 +9,11 @@ env/
 .env
 
 # Project specific
-api/uploads/
-api/data/*.json
-api/data/*.db
+uploads/
+temp_uploads/
+data/*.json
+data/*.db
+serviceAccountKey.json
 .vscode/
 .idea/
 *.log

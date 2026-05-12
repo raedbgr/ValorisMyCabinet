@@ -23,3 +23,35 @@ async def chat(request: ChatRequest):
     response = await ollama_service.chat(messages, system_prompt)
 
     return {"reply": response}
+
+
+from app.models.schemas import FeedbackRequest
+from app.services.firebase_service import fb_service
+from datetime import datetime
+from uuid import uuid4
+
+@router.post("/feedback")
+async def submit_feedback(request: FeedbackRequest):
+    """Save thumbs up/down feedback to Firestore for future fine-tuning."""
+    db = fb_service.get_db()
+    
+    feedback_data = {
+        "id": str(uuid4()),
+        "message_id": request.message_id,
+        "client_id": request.client_id,
+        "is_positive": request.is_positive,
+        "comments": request.comments,
+        "submitted_at": datetime.now().isoformat()
+    }
+    
+    if db:
+        # Save to 'feedback' collection
+        db.collection("feedback").document(feedback_data["id"]).set(feedback_data)
+        return {"success": True, "message": "Feedback enregistré"}
+    else:
+        # Fallback to local log if Firebase isn't up
+        import json
+        with open("data/feedback.json", "a", encoding="utf-8") as f:
+            f.write(json.dumps(feedback_data) + "\n")
+        return {"success": True, "message": "Feedback enregistré (local)"}
+

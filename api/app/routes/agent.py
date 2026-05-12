@@ -12,10 +12,8 @@ from app.routes.deadlines import load_deadlines, calculate_status
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
-# Storage for reminders
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-REMINDERS_FILE = DATA_DIR / "reminders.json"
+from app.services.firebase_service import fb_service
+
 
 UPLOAD_DIR = Path("uploads")
 
@@ -33,17 +31,20 @@ DEADLINE_DOC_MAP = {
 # ---------------------------------------------------------------------------
 
 def load_reminders() -> list[dict]:
-    """Read reminders.json and return a list (or [] if file missing)."""
-    if not REMINDERS_FILE.exists():
+    """Read reminders from Firestore."""
+    db = fb_service.get_db()
+    if not db:
         return []
-    with open(REMINDERS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        
+    docs = db.collection("reminders").stream()
+    return [doc.to_dict() for doc in docs]
 
 
-def save_reminders(reminders: list[dict]):
-    """Write the full list back to reminders.json."""
-    with open(REMINDERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(reminders, f, ensure_ascii=False, indent=2)
+def save_reminder(reminder: dict):
+    """Save a single reminder to Firestore."""
+    db = fb_service.get_db()
+    if db:
+        db.collection("reminders").document(reminder["id"]).set(reminder)
 
 
 def get_urgent_deadlines_for_client(client_id: str) -> list[dict]:
@@ -171,9 +172,16 @@ async def remind_client(client_id: str):
             "auto": True
         }
 
-        all_reminders = load_reminders()
-        all_reminders.append(reminder)
-        save_reminders(all_reminders)
+        save_reminder(reminder)
+        
+        fcm_token = fb_service.get_client_fcm_token(client_id)
+        if fcm_token:
+            fb_service.send_push_notification(
+                token=fcm_token,
+                title="Rappel MyCabinet",
+                body=reminder["message"],
+                data={"client_id": client_id, "urgency": reminder["urgency"]}
+            )
 
         result["reminder_saved"] = True
     else:

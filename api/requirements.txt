@@ -6,3 +6,6 @@ pydantic
 python-multipart
 firebase-admin
 apscheduler
+pypdf
+Pillow
+pytesseract
