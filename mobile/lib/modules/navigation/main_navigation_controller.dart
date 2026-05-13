@@ -7,8 +7,7 @@ class MainNavigationController extends GetxController {
     currentIndex.value = index;
   }
 
-  void goToDocuments() => navigateTo(1);
-  void goToCalendar() => navigateTo(2);
-  void goToChat() => navigateTo(3);
-  void goToHome() => navigateTo(0);
+  void goToDocuments() => navigateTo(0);
+  void goToCalendar() => navigateTo(1);
+  void goToChat() => navigateTo(2);
 }

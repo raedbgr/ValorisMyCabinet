@@ -19,12 +19,25 @@ class CalendarView extends GetView<CalendarController> {
             child: RefreshIndicator(
               color: AppColors.brand,
               onRefresh: () async => controller.refresh(),
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _buildSections()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                ],
-              ),
+              child: Obx(() {
+                final hasAny = controller.urgent.isNotEmpty ||
+                    controller.upcoming.isNotEmpty ||
+                    controller.late.isNotEmpty ||
+                    controller.complete.isNotEmpty;
+                return CustomScrollView(
+                  slivers: [
+                    if (!hasAny)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _buildEmptyState(),
+                      )
+                    else ...[
+                      SliverToBoxAdapter(child: _buildSections()),
+                      const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                    ],
+                  ],
+                );
+              }),
             ),
           ),
         ],
@@ -35,15 +48,24 @@ class CalendarView extends GetView<CalendarController> {
   Widget _buildHeader() {
     return const Padding(
       padding: EdgeInsets.fromLTRB(20, 64, 20, 20),
-      child: Text(
-        'Calendrier',
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-          color: AppColors.text,
-          letterSpacing: -0.7,
-          height: 1.15,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Calendrier',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+              letterSpacing: -0.7,
+              height: 1.15,
+            ),
+          ),
+          // Spacer to match the avatar size in the Documents screen header,
+          // keeping the title's vertical position identical.
+          SizedBox(width: 48, height: 48),
+        ],
       ),
     );
   }
@@ -59,16 +81,16 @@ class CalendarView extends GetView<CalendarController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (urgentList.isNotEmpty) ...[
-              _sectionLabel('À venir'),
-              ...urgentList.map((d) => Padding(
+            if (lateList.isNotEmpty) ...[
+              _sectionLabel('En retard'),
+              ...lateList.map((d) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: DeadlineCard(deadline: d),
                   )),
             ],
-            if (lateList.isNotEmpty) ...[
-              _sectionLabel('En retard'),
-              ...lateList.map((d) => Padding(
+            if (urgentList.isNotEmpty) ...[
+              _sectionLabel('À venir'),
+              ...urgentList.map((d) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: DeadlineCard(deadline: d),
                   )),
@@ -84,6 +106,30 @@ class CalendarView extends GetView<CalendarController> {
         ),
       );
     });
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.event_available_outlined,
+            size: 48,
+            color: AppColors.text3,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Aucune échéance',
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.text2,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _sectionLabel(String text) {

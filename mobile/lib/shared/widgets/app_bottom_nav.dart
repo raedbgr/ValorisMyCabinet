@@ -25,18 +25,10 @@ class AppBottomNav extends StatelessWidget {
           child: Row(
             children: [
               _NavItem(
-                icon: Icons.home_outlined,
-                iconActive: Icons.home_rounded,
-                label: 'Accueil',
-                index: 0,
-                current: currentIndex,
-                onTap: onTap,
-              ),
-              _NavItem(
                 icon: Icons.folder_outlined,
                 iconActive: Icons.folder_rounded,
                 label: 'Documents',
-                index: 1,
+                index: 0,
                 current: currentIndex,
                 onTap: onTap,
               ),
@@ -44,7 +36,7 @@ class AppBottomNav extends StatelessWidget {
                 icon: Icons.calendar_month_outlined,
                 iconActive: Icons.calendar_month_rounded,
                 label: 'Calendrier',
-                index: 2,
+                index: 1,
                 current: currentIndex,
                 onTap: onTap,
               ),
@@ -52,7 +44,7 @@ class AppBottomNav extends StatelessWidget {
                 icon: Icons.auto_awesome_outlined,
                 iconActive: Icons.auto_awesome_rounded,
                 label: 'Assistant',
-                index: 3,
+                index: 2,
                 current: currentIndex,
                 onTap: onTap,
               ),

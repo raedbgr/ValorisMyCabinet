@@ -1,64 +1,20 @@
 import '../models/deadline_model.dart';
+import '../services/api_client.dart';
+import '../services/api_config.dart';
 
 class CalendarRepository {
-  // Mock data — replace with Firestore calls
-  final List<DeadlineModel> _deadlines = [
-    DeadlineModel(
-      id: 'tva-07-2026',
-      code: 'TVA',
-      title: 'Déclaration TVA',
-      period: 'Période — Juillet 2026',
-      dueDate: DateTime(2026, 8, 20),
-      status: DeadlineStatus.urgent,
-      missingDocs: 2,
-      requiredDocTypes: ['Factures juillet', 'Relevé bancaire juillet'],
-    ),
-    DeadlineModel(
-      id: 'dsn-07-2026',
-      code: 'DSN',
-      title: 'DSN mensuelle',
-      period: 'Période — Juillet 2026',
-      dueDate: DateTime(2026, 9, 5),
-      status: DeadlineStatus.upcoming,
-      missingDocs: 0,
-    ),
-    DeadlineModel(
-      id: 'is-3-2026',
-      code: 'IS',
-      title: "Acompte d'impôt sur les sociétés",
-      period: '3ème acompte 2026',
-      dueDate: DateTime(2026, 9, 15),
-      status: DeadlineStatus.upcoming,
-      missingDocs: 1,
-      requiredDocTypes: ['Bilan prévisionnel'],
-    ),
-    DeadlineModel(
-      id: 'cfe-1-2026',
-      code: 'CFE',
-      title: 'Acompte de CFE',
-      period: '1er acompte 2026',
-      dueDate: DateTime(2026, 6, 15),
-      status: DeadlineStatus.late,
-      missingDocs: 1,
-    ),
-    DeadlineModel(
-      id: 'tva-06-2026',
-      code: 'TVA',
-      title: 'Déclaration TVA',
-      period: 'Période — Juin 2026',
-      dueDate: DateTime(2026, 7, 20),
-      status: DeadlineStatus.complete,
-      missingDocs: 0,
-    ),
-  ];
+  final ApiClient _api = ApiClient.instance;
+  final List<DeadlineModel> _cache = [];
 
-  List<DeadlineModel> getAll() => List.unmodifiable(_deadlines);
+  String get defaultClientId => ApiConfig.defaultClientId;
+
+  List<DeadlineModel> getAll() => List.unmodifiable(_cache);
 
   List<DeadlineModel> getByStatus(DeadlineStatus status) =>
-      _deadlines.where((d) => d.status == status).toList();
+      _cache.where((d) => d.status == status).toList();
 
   DeadlineModel? getNext() {
-    final upcoming = _deadlines
+    final upcoming = _cache
         .where((d) =>
             d.status == DeadlineStatus.urgent ||
             d.status == DeadlineStatus.upcoming)
@@ -69,9 +25,112 @@ class CalendarRepository {
 
   DeadlineModel? getById(String id) {
     try {
-      return _deadlines.firstWhere((d) => d.id == id);
+      return _cache.firstWhere((d) => d.id == id);
     } catch (_) {
       return null;
     }
+  }
+
+  Future<List<DeadlineModel>> fetchAll(String clientId) async {
+    final data = await _api.get('/deadlines/$clientId');
+    _cache
+      ..clear()
+      ..addAll(_parseList(data));
+    return getAll();
+  }
+
+  Future<List<DeadlineModel>> fetchUrgent(String clientId) async {
+    final data = await _api.get('/deadlines/$clientId/urgent');
+    return _parseList(data);
+  }
+
+  Future<DeadlineModel> createDeadline({
+    required String clientId,
+    required String label,
+    required DateTime dueDate,
+    required String type,
+  }) async {
+    final iso =
+        '${dueDate.year.toString().padLeft(4, '0')}-${dueDate.month.toString().padLeft(2, '0')}-${dueDate.day.toString().padLeft(2, '0')}';
+    final data = await _api.post('/deadlines/', body: {
+      'client_id': clientId,
+      'label': label,
+      'due_date': iso,
+      'type': type,
+    });
+    final created = _parseOne(data);
+    if (created != null) _cache.add(created);
+    return created!;
+  }
+
+  Future<List<DeadlineModel>> seedDeadlines(String clientId) async {
+    final data = await _api.post('/deadlines/seed/$clientId');
+    return _parseList(data);
+  }
+
+  List<DeadlineModel> _parseList(dynamic data) {
+    if (data is! List) return [];
+    return data
+        .whereType<Map>()
+        .map(_parseOne)
+        .whereType<DeadlineModel>()
+        .toList();
+  }
+
+  DeadlineModel? _parseOne(dynamic raw) {
+    if (raw is! Map) return null;
+    final id = (raw['id'] ?? '').toString();
+    final label = (raw['label'] ?? '').toString();
+    final type = (raw['type'] ?? 'autre').toString();
+    final dueStr = (raw['due_date'] ?? '').toString();
+    final due = DateTime.tryParse(dueStr);
+    if (id.isEmpty || due == null) return null;
+
+    final statusStr = (raw['status'] ?? 'upcoming').toString();
+    final status = _statusFromString(statusStr);
+
+    return DeadlineModel(
+      id: id,
+      code: type,
+      title: label,
+      period: _periodForDate(due),
+      dueDate: due,
+      status: status,
+      missingDocs: 0,
+    );
+  }
+
+  DeadlineStatus _statusFromString(String s) {
+    switch (s.toLowerCase()) {
+      case 'urgent':
+        return DeadlineStatus.urgent;
+      case 'late':
+        return DeadlineStatus.late;
+      case 'done':
+      case 'complete':
+        return DeadlineStatus.complete;
+      case 'upcoming':
+      default:
+        return DeadlineStatus.upcoming;
+    }
+  }
+
+  String _periodForDate(DateTime d) {
+    const months = [
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre'
+    ];
+    final m = months[(d.month - 1).clamp(0, 11)];
+    return 'Période — $m ${d.year}';
   }
 }

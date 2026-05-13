@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../data/models/message_model.dart';
 import '../../../data/repositories/chat_repository.dart';
+import '../../../data/services/api_client.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class ChatController extends GetxController {
   final _repo = ChatRepository();
@@ -28,6 +30,22 @@ class ChatController extends GetxController {
     super.onClose();
   }
 
+  String get _clientName {
+    if (Get.isRegistered<AuthController>()) {
+      final u = Get.find<AuthController>().currentUser.value;
+      if (u != null) return u.fullName;
+    }
+    return 'Client';
+  }
+
+  String get _clientId {
+    if (Get.isRegistered<AuthController>()) {
+      final u = Get.find<AuthController>().currentUser.value;
+      if (u != null) return u.id;
+    }
+    return _repo.defaultClientId;
+  }
+
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
     textController.clear();
@@ -44,9 +62,7 @@ class ChatController extends GetxController {
     messages.value = _repo.getMessages();
     _scrollToBottom();
 
-    // Simulate streaming assistant response
     isThinking.value = true;
-    await Future.delayed(const Duration(milliseconds: 1200));
 
     final assistantMsg = MessageModel(
       id: '${DateTime.now().millisecondsSinceEpoch}a',
@@ -55,30 +71,52 @@ class ChatController extends GetxController {
       timestamp: DateTime.now(),
       isStreaming: true,
     );
-
     await _repo.addMessage(assistantMsg);
     messages.value = _repo.getMessages();
-    isThinking.value = false;
 
-    // Stream mock response
-    const response =
-        "Parfait ! Je vous enverrai un rappel demain matin à 9h si les factures du 15 et 22 juillet ne sont pas encore uploadées. Voulez-vous que je planifie aussi un créneau avec votre comptable ?";
-    var streamed = '';
-    for (int i = 0; i < response.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 18));
-      streamed += response[i];
-      await _repo.updateLastAssistantMessage(streamed, isStreaming: true);
-      messages.value = _repo.getMessages();
-      _scrollToBottom();
+    String reply;
+    try {
+      reply = await _repo.sendChat(
+        clientName: _clientName,
+        history: _repo
+            .getMessages()
+            .where((m) => !m.isStreaming)
+            .toList(),
+      );
+    } on ApiException catch (e) {
+      reply =
+          "Je n'ai pas pu joindre le serveur (${e.message}). Réessayez plus tard.";
+    } catch (_) {
+      reply = "Une erreur inattendue est survenue.";
     }
 
-    await _repo.updateLastAssistantMessage(response, isStreaming: false);
+    isThinking.value = false;
+
+    // Pseudo-streaming for UX consistency
+    var streamed = '';
+    for (int i = 0; i < reply.length; i++) {
+      streamed += reply[i];
+      await _repo.updateLastAssistantMessage(streamed, isStreaming: true);
+      messages.value = _repo.getMessages();
+      if (i % 4 == 0) {
+        await Future.delayed(const Duration(milliseconds: 12));
+        _scrollToBottom();
+      }
+    }
+
+    await _repo.updateLastAssistantMessage(reply, isStreaming: false);
     messages.value = _repo.getMessages();
+    _scrollToBottom();
   }
 
   Future<void> setFeedback(String messageId, FeedbackVote vote) async {
     await _repo.setFeedback(messageId, vote);
     messages.value = _repo.getMessages();
+    await _repo.submitFeedback(
+      messageId: messageId,
+      clientId: _clientId,
+      isPositive: vote == FeedbackVote.up,
+    );
   }
 
   void toggleToolTrace(String messageId) {
