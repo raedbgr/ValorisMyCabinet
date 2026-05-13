@@ -19,6 +19,10 @@ class DocumentsController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = RxnString();
 
+  // Locally-added documents (e.g. camera captures) that should remain visible
+  // even if the backend upload fails or the server doesn't return them yet.
+  final List<DocumentModel> _localDocs = [];
+
   final categories = [
     DocumentCategory.all,
     DocumentCategory.facture,
@@ -58,7 +62,15 @@ class DocumentsController extends GetxController {
   }
 
   void _applyFilter() {
-    documents.value = _repo.getByCategory(selectedCategory.value);
+    final serverDocs = _repo.getByCategory(selectedCategory.value);
+    final serverNames = serverDocs.map((d) => d.name).toSet();
+    final localDocs = _localDocs
+        .where((d) =>
+            selectedCategory.value == DocumentCategory.all ||
+            d.category == selectedCategory.value)
+        .where((d) => !serverNames.contains(d.name))
+        .toList();
+    documents.value = [...localDocs, ...serverDocs];
   }
 
   void selectCategory(DocumentCategory category) {
@@ -96,18 +108,35 @@ class DocumentsController extends GetxController {
 
   Future<void> _processUpload(String path, String name) async {
     isUploading.value = true;
+
+    final guessed = selectedCategory.value == DocumentCategory.all
+        ? _guessCategory(name)
+        : selectedCategory.value;
+
+    // Always show the document locally right away — even before the backend
+    // responds — so camera captures appear immediately and persist if the
+    // upload fails.
+    final localDoc = DocumentModel(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      category: guessed,
+      uploadedAt: DateTime.now(),
+      status: DocumentStatus.processing,
+      downloadUrl: path,
+    );
+    _localDocs.insert(0, localDoc);
+    _applyFilter();
+
     try {
       await _repo.uploadDocument(
         clientId: _clientId,
         filePath: path,
         filename: name,
-        category: selectedCategory.value == DocumentCategory.all
-            ? _guessCategory(name)
-            : selectedCategory.value,
+        category: guessed,
       );
       _applyFilter();
       Get.snackbar(
-        'Document téléversé',
+        'Document ajouté',
         name,
         backgroundColor: AppColors.card,
         colorText: AppColors.text,
@@ -121,9 +150,21 @@ class DocumentsController extends GetxController {
             (_) => null,
           );
     } on ApiException catch (e) {
+      // Keep the local entry so the user still sees their capture, but flag
+      // the failure so they know it wasn't synced.
       Get.snackbar(
-        'Erreur de téléversement',
-        e.message,
+        'Ajouté localement',
+        'Échec de l\'envoi au serveur (${e.message})',
+        backgroundColor: AppColors.card,
+        colorText: AppColors.text,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Ajouté localement',
+        'Le document a été ajouté à votre liste',
         backgroundColor: AppColors.card,
         colorText: AppColors.text,
         snackPosition: SnackPosition.BOTTOM,
@@ -132,9 +173,25 @@ class DocumentsController extends GetxController {
       );
     } finally {
       isUploading.value = false;
-      // Refresh from server to get the canonical state
+      // Mark local doc as ready (no longer "processing"), then re-fetch.
+      _markLocalReady(name);
       await refreshDocuments();
     }
+  }
+
+  void _markLocalReady(String name) {
+    final idx = _localDocs.indexWhere((d) => d.name == name);
+    if (idx == -1) return;
+    final existing = _localDocs[idx];
+    _localDocs[idx] = DocumentModel(
+      id: existing.id,
+      name: existing.name,
+      category: existing.category,
+      uploadedAt: existing.uploadedAt,
+      status: DocumentStatus.ready,
+      downloadUrl: existing.downloadUrl,
+      sizeBytes: existing.sizeBytes,
+    );
   }
 
   DocumentCategory _guessCategory(String name) {
@@ -151,6 +208,13 @@ class DocumentsController extends GetxController {
   }
 
   Future<void> deleteDocument(String id) async {
+    // If it's only a local doc (not yet on the server), just drop it.
+    final localIdx = _localDocs.indexWhere((d) => d.id == id);
+    if (localIdx != -1) {
+      _localDocs.removeAt(localIdx);
+      _applyFilter();
+      return;
+    }
     try {
       await _repo.deleteDocument(clientId: _clientId, id: id);
     } on ApiException catch (e) {
